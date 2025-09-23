@@ -13,6 +13,9 @@ export type Post = {
     hashtags: string[];
     imageUrl: string;
     status: Status;
+    // ✅ add this:
+    publishedAt?: string;
+    // metrics
     likes?: number;
     comments?: number;
     impressions?: number;
@@ -24,7 +27,7 @@ type Store = {
     approve: (id: string) => void;
     approveAll: () => void;
     publishAllNow: () => void;
-    reset: () => void;   // ✅ new
+    reset: () => void;
 };
 
 export const usePostsStore = create<Store>()(
@@ -51,6 +54,9 @@ export const usePostsStore = create<Store>()(
                             ? {
                                 ...p,
                                 status: "PUBLISHED",
+                                // ✅ stamp publish time
+                                publishedAt: new Date().toISOString(),
+                                // demo metrics
                                 likes: Math.floor(Math.random() * 500),
                                 comments: Math.floor(Math.random() * 100),
                                 impressions: Math.floor(Math.random() * 2000),
@@ -58,7 +64,7 @@ export const usePostsStore = create<Store>()(
                             : p
                     ),
                 }),
-            reset: () => set({ posts: [] }), // ✅ added reset
+            reset: () => set({ posts: [] }),
         }),
         { name: "corevai-posts" }
     )
