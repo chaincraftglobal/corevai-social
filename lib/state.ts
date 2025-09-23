@@ -6,6 +6,13 @@ import { persist } from "zustand/middleware";
 
 export type Status = "DRAFT" | "SCHEDULED" | "PUBLISHED";
 
+export type BrandInfo = {
+    name: string;
+    niche: string;
+    tone: string;
+    platforms: string[];
+};
+
 export type Post = {
     id: string;
     day: string;
@@ -14,10 +21,8 @@ export type Post = {
     imageUrl: string;
     status: Status;
 
-    // ✅ Add platform
     platform: "LinkedIn" | "Twitter" | "Instagram" | "Facebook";
 
-    // publishing info
     publishedAt?: string;
     likes?: number;
     comments?: number;
@@ -31,6 +36,10 @@ type Store = {
     approveAll: () => void;
     publishAllNow: () => void;
     reset: () => void;
+
+    // ✅ new
+    brand: BrandInfo | null;
+    setBrand: (b: BrandInfo) => void;
 };
 
 export const usePostsStore = create<Store>()(
@@ -57,9 +66,7 @@ export const usePostsStore = create<Store>()(
                             ? {
                                 ...p,
                                 status: "PUBLISHED",
-                                // ✅ stamp publish time
                                 publishedAt: new Date().toISOString(),
-                                // demo metrics
                                 likes: Math.floor(Math.random() * 500),
                                 comments: Math.floor(Math.random() * 100),
                                 impressions: Math.floor(Math.random() * 2000),
@@ -68,6 +75,10 @@ export const usePostsStore = create<Store>()(
                     ),
                 }),
             reset: () => set({ posts: [] }),
+
+            // ✅ brand info
+            brand: null,
+            setBrand: (b) => set({ brand: b }),
         }),
         { name: "corevai-posts" }
     )
