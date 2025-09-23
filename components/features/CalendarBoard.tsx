@@ -1,14 +1,19 @@
-export default function CalendarBoard() {
+import PostCard from "./PostCard";
+import { DraftPost } from "@/lib/mockData";
+
+export default function CalendarBoard({ posts }: { posts: DraftPost[] }) {
+    if (!posts.length) {
+        return (
+            <div className="text-center text-slate-500 py-10">
+                No drafts yet. Click “Generate Plan” to create your week.
+            </div>
+        );
+    }
+
     return (
-        <div className="grid grid-cols-7 gap-4">
-            {[...Array(7)].map((_, i) => (
-                <div
-                    key={i}
-                    className="border rounded-md p-3 text-center bg-slate-50"
-                >
-                    <p className="font-medium">Day {i + 1}</p>
-                    <p className="text-xs text-slate-400">[Post Placeholder]</p>
-                </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+            {posts.map((post) => (
+                <PostCard key={post.id} {...post} />
             ))}
         </div>
     );
