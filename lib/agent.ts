@@ -49,3 +49,17 @@ export function generatePlan(brand: BrandInfo): Post[] {
         };
     });
 }
+
+export async function generatePlanRemote(brand: BrandInfo): Promise<Post[]> {
+  const res = await fetch("/api/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ brand }),
+  });
+  if (!res.ok) {
+    const msg = await res.text().catch(() => "");
+    throw new Error(`Generate failed: ${res.status} ${msg}`);
+  }
+  const data = await res.json();
+  return data.posts as Post[];
+}
