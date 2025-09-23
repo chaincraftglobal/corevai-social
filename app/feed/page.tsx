@@ -16,9 +16,6 @@ export default function FeedPage() {
                 Posts appear here when published. Use “Publish Now” during this milestone.
             </p>
 
-            <p className="text-xs text-slate-500 mb-3">
-                scheduled: {scheduled.length} | published: {published.length}
-            </p>
 
             {scheduled.length > 0 && (
                 <button
