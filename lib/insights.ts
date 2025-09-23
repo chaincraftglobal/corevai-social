@@ -1,10 +1,31 @@
+// lib/insights.ts
 import type { Post } from "./state";
 import { groupBy, sum, bestPost, seededImg } from "./utils";
 
-// ... keep deriveInsights as-is
+/**
+ * Analyze published posts and return KPIs + insights.
+ */
+export function deriveInsights(posts: Post[]) {
+    const published = posts.filter((p) => p.status === "PUBLISHED");
 
+    const totalImpr = sum(published.map((p) => p.impressions ?? 0));
+    const totalLikes = sum(published.map((p) => p.likes ?? 0));
+    const totalComments = sum(published.map((p) => p.comments ?? 0));
+    const best = bestPost(published);
+
+    return {
+        totalImpr,
+        totalLikes,
+        totalComments,
+        best,
+    };
+}
+
+/**
+ * Generate an optimized plan for the next week based on insights.
+ */
 export function generateOptimizedPlan(published: Post[]): Post[] {
-    // pick a default platform based on what you’ve posted most
+    // determine top platform, fallback LinkedIn
     const platformCounts = published.reduce<Record<string, number>>((acc, p) => {
         if (p.platform) acc[p.platform] = (acc[p.platform] || 0) + 1;
         return acc;
@@ -36,7 +57,6 @@ export function generateOptimizedPlan(published: Post[]): Post[] {
         hashtags: ["#Growth", "#Marketing", "#AI"].slice(0, 2 + (idx % 2)),
         imageUrl: seededImg(`opt-${day}-${idx}`),
         status: "DRAFT" as const,
-        platform: topPlatform as Post["platform"], // ✅ required by type
-        // time is optional; you can add smarter times later
+        platform: topPlatform as Post["platform"], // ✅ required
     }));
 }
