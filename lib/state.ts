@@ -41,6 +41,10 @@ type Store = {
 
     brand: BrandInfo | null;
     setBrand: (b: BrandInfo) => void;
+
+    // ✅ NEW
+    autoApprove: boolean;
+    setAutoApprove: (v: boolean) => void;
 };
 
 export const usePostsStore = create<Store>()(
@@ -79,6 +83,9 @@ export const usePostsStore = create<Store>()(
 
             brand: null,
             setBrand: (b) => set({ brand: b }),
+            // ✅ NEW
+            autoApprove: false,
+            setAutoApprove: (v) => set({ autoApprove: v }),
         }),
         { name: "corevai-posts" }
     )

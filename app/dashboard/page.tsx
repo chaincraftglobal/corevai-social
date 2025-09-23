@@ -9,7 +9,10 @@ import KPI from "@/components/features/KPI";
 
 export default function DashboardPage() {
     const router = useRouter();
-    const { posts, setPosts, approve, approveAll, reset, brand } = usePostsStore();
+    const {
+        posts, setPosts, approve, approveAll, reset, brand,
+        autoApprove, setAutoApprove,
+    } = usePostsStore();
 
     const draftCount = posts.filter((p) => p.status === "DRAFT").length;
     const scheduledCount = posts.filter((p) => p.status === "SCHEDULED").length;
@@ -17,18 +20,22 @@ export default function DashboardPage() {
 
     const handleGenerate = () => {
         if (!brand) {
-            router.push("/onboarding"); // 🚀 redirect instead of alert
+            router.push("/onboarding");
             return;
         }
-        setPosts(generatePlan(brand));
+        const plan = generatePlan(brand);
+        setPosts(plan);
+        if (autoApprove) {
+            // microtask ensures state is set first
+            queueMicrotask(() => approveAll());
+        }
     };
 
     return (
         <div className="max-w-5xl mx-auto">
             <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
 
-            {/* 👇 Show current brand info */}
-            <p className="mb-6 text-slate-600">
+            <p className="mb-4 text-slate-600">
                 {brand ? (
                     <>
                         Current Brand: <span className="font-semibold">{brand.name}</span>{" "}
@@ -36,15 +43,24 @@ export default function DashboardPage() {
                     </>
                 ) : (
                     <>No brand yet —{" "}
-                        <button
-                            onClick={() => router.push("/onboarding")}
-                            className="underline text-blue-600"
-                        >
+                        <button onClick={() => router.push("/onboarding")} className="underline text-blue-600">
                             create one here
                         </button>.
                     </>
                 )}
             </p>
+
+            {/* ✅ Auto-approve toggle */}
+            <div className="flex items-center gap-3 mb-4">
+                <label className="flex items-center gap-2 text-sm">
+                    <input
+                        type="checkbox"
+                        checked={autoApprove}
+                        onChange={(e) => setAutoApprove(e.target.checked)}
+                    />
+                    Auto-approve after generation
+                </label>
+            </div>
 
             <div className="flex gap-3 mb-6">
                 <button
