@@ -1,16 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { usePostsStore } from "@/lib/state";
-import { generatePlanRemote } from "@/lib/agent"; // ⬅️ use remote
+import { generatePlan } from "@/lib/agent";
 import CalendarBoard from "@/components/features/CalendarBoard";
 import KPI from "@/components/features/KPI";
 
 export default function DashboardPage() {
-    const router = useRouter();
-    const { posts, setPosts, approve, approveAll, reset, brand, autoApprove, setAutoApprove } = usePostsStore();
-    const [loading, setLoading] = useState(false);
+    const { posts, setPosts, approve, approveAll, reset, brand } = usePostsStore();
 
     const draftCount = posts.filter((p) => p.status === "DRAFT").length;
     const scheduledCount = posts.filter((p) => p.status === "SCHEDULED").length;
@@ -18,56 +14,57 @@ export default function DashboardPage() {
 
     const handleGenerate = async () => {
         if (!brand) {
-            router.push("/onboarding");
+            alert("Please complete onboarding first!");
             return;
         }
+
         try {
-            setLoading(true);
-            const plan = await generatePlanRemote(brand);   // ✅ real AI posts
-            setPosts(plan);
-            if (autoApprove) queueMicrotask(() => approveAll());
-        } catch (e: any) {
-            alert(e?.message || "Failed to generate posts");
-        } finally {
-            setLoading(false);
+            const result = await fetch("/api/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ brand }),
+            });
+
+            const data: { posts?: typeof posts; error?: string } = await result.json();
+            if (data.posts) {
+                setPosts(data.posts);
+            } else {
+                alert(data.error ?? "Failed to generate posts");
+            }
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : "Failed to generate posts";
+            alert(msg);
         }
     };
 
     return (
         <div className="max-w-5xl mx-auto">
-            <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-
-            <p className="mb-4 text-slate-600">
-                {brand ? (
-                    <>Current Brand: <span className="font-semibold">{brand.name}</span> ({brand.platforms.join(", ")}, tone: {brand.tone})</>
-                ) : (
-                    <>No brand yet — <button onClick={() => router.push("/onboarding")} className="underline text-blue-600">create one here</button>.</>
-                )}
+            <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
+            <p className="mb-6 text-slate-600">
+                Generate your 7-day AI social plan. Approve posts to schedule them.
             </p>
-
-            <div className="flex items-center gap-3 mb-4">
-                <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={autoApprove} onChange={(e) => setAutoApprove(e.target.checked)} />
-                    Auto-approve after generation
-                </label>
-            </div>
 
             <div className="flex gap-3 mb-6">
                 <button
                     onClick={handleGenerate}
-                    disabled={loading}
-                    className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 disabled:opacity-50"
+                    className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700"
                 >
-                    {loading ? "Generating…" : "Generate Plan"}
+                    Generate Plan
                 </button>
 
                 {posts.length > 0 && (
                     <>
-                        <button onClick={approveAll} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        <button
+                            onClick={approveAll}
+                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        >
                             Approve All
                         </button>
-                        <button onClick={reset} className="bg-slate-200 text-slate-700 px-4 py-2 rounded hover:bg-slate-300">
-                            Reset
+                        <button
+                            onClick={reset}
+                            className="bg-slate-200 text-slate-700 px-4 py-2 rounded hover:bg-slate-300"
+                        >
+                            Reset Demo
                         </button>
                     </>
                 )}
