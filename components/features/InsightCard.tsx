@@ -1,7 +1,5 @@
-export default function InsightCard() {
+export default function InsightCard({ text }: { text: string }) {
     return (
-        <div className="border rounded-lg p-4 bg-slate-50">
-            <p className="text-sm">💡 [AI-style insight placeholder]</p>
-        </div>
+        <div className="border rounded-lg p-3 bg-slate-50 text-sm">{text}</div>
     );
 }
