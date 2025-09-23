@@ -1,27 +1,54 @@
 // app/dashboard/page.tsx
 "use client";
 
+import { useRouter } from "next/navigation";
 import { usePostsStore } from "@/lib/state";
-import { demoDrafts } from "@/lib/mockData";
+import { generatePlan } from "@/lib/agent";
 import CalendarBoard from "@/components/features/CalendarBoard";
 import KPI from "@/components/features/KPI";
 
 export default function DashboardPage() {
-    const { posts, setPosts, approve, approveAll, reset } = usePostsStore(); // added reset
+    const router = useRouter();
+    const { posts, setPosts, approve, approveAll, reset, brand } = usePostsStore();
+
     const draftCount = posts.filter((p) => p.status === "DRAFT").length;
     const scheduledCount = posts.filter((p) => p.status === "SCHEDULED").length;
     const publishedCount = posts.filter((p) => p.status === "PUBLISHED").length;
 
+    const handleGenerate = () => {
+        if (!brand) {
+            router.push("/onboarding"); // 🚀 redirect instead of alert
+            return;
+        }
+        setPosts(generatePlan(brand));
+    };
+
     return (
         <div className="max-w-5xl mx-auto">
-            <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
+            <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+
+            {/* 👇 Show current brand info */}
             <p className="mb-6 text-slate-600">
-                Generate your 7-day AI social plan. Approve posts to schedule them.
+                {brand ? (
+                    <>
+                        Current Brand: <span className="font-semibold">{brand.name}</span>{" "}
+                        ({brand.platforms.join(", ")}, tone: {brand.tone})
+                    </>
+                ) : (
+                    <>No brand yet —{" "}
+                        <button
+                            onClick={() => router.push("/onboarding")}
+                            className="underline text-blue-600"
+                        >
+                            create one here
+                        </button>.
+                    </>
+                )}
             </p>
 
             <div className="flex gap-3 mb-6">
                 <button
-                    onClick={() => setPosts(demoDrafts)}
+                    onClick={handleGenerate}
                     className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700"
                 >
                     Generate Plan
@@ -39,7 +66,7 @@ export default function DashboardPage() {
                             onClick={reset}
                             className="bg-slate-200 text-slate-700 px-4 py-2 rounded hover:bg-slate-300"
                         >
-                            Reset Demo
+                            Reset
                         </button>
                     </>
                 )}
