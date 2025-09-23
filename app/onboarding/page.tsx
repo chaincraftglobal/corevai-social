@@ -2,25 +2,30 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { usePostsStore, type BrandInfo } from "@/lib/state";
+import { usePostsStore, type BrandInfo, type Platform } from "@/lib/state";
+
+// ✅ Strongly-typed list of allowed platforms
+const ALL_PLATFORMS: Platform[] = ["LinkedIn", "Twitter", "Instagram", "Facebook"];
 
 export default function OnboardingPage() {
     const { setBrand } = usePostsStore();
     const router = useRouter();
 
+    // ✅ Initialize with Platform[] (not string[])
     const [form, setForm] = useState<BrandInfo>({
         name: "",
         niche: "",
         tone: "",
-        platforms: [],
+        platforms: [],            // Platform[]
     });
 
     const handleChange = (field: keyof BrandInfo, value: string) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleCheckbox = (platform: string) => {
-        setForm((prev) => ({
+    // ✅ Accept Platform, and return BrandInfo (with Platform[]), so TS is happy
+    const handleCheckbox = (platform: Platform) => {
+        setForm((prev): BrandInfo => ({
             ...prev,
             platforms: prev.platforms.includes(platform)
                 ? prev.platforms.filter((p) => p !== platform)
@@ -31,7 +36,7 @@ export default function OnboardingPage() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setBrand(form);
-        router.push("/dashboard"); // ✅ go to dashboard after onboarding
+        router.push("/dashboard");
     };
 
     return (
@@ -90,12 +95,12 @@ export default function OnboardingPage() {
                 <div>
                     <label className="block mb-1 font-medium">Preferred Platforms</label>
                     <div className="flex gap-4 flex-wrap">
-                        {["LinkedIn", "Twitter", "Instagram", "Facebook"].map((p) => (
+                        {ALL_PLATFORMS.map((p) => (
                             <label key={p} className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
                                     checked={form.platforms.includes(p)}
-                                    onChange={() => handleCheckbox(p)}
+                                    onChange={() => handleCheckbox(p)}  // ✅ p is Platform
                                 />
                                 {p}
                             </label>
@@ -103,11 +108,7 @@ export default function OnboardingPage() {
                     </div>
                 </div>
 
-                {/* Submit */}
-                <button
-                    type="submit"
-                    className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-                >
+                <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
                     Save & Continue
                 </button>
             </form>
