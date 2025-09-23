@@ -54,9 +54,20 @@ export default function AnalyticsPage() {
                 <AnalyticsChart data={chartData} />
             </div>
 
+
+
             {/* Insights */}
             <div className="grid gap-3 mb-8">
-                {insights.map((t, i) => <InsightCard key={i} text={t} />)}
+                {[
+                    `Total impressions: ${insights.totalImpr}`,
+                    `Total likes: ${insights.totalLikes}`,
+                    `Total comments: ${insights.totalComments}`,
+                    insights.best
+                        ? `Best post was on ${insights.best.day} → "${insights.best.caption}"`
+                        : "No best post yet",
+                ].map((t, i) => (
+                    <InsightCard key={i} text={t} />
+                ))}
             </div>
 
             {/* Optimize CTA */}
