@@ -9,6 +9,7 @@ export const demoDrafts: Post[] = [
         hashtags: ["#MondayMotivation", "#Productivity"],
         imageUrl: "https://picsum.photos/seed/mon/600/400",
         status: "DRAFT",
+        platform: "LinkedIn", // ✅ added
     },
     {
         id: "2",
@@ -17,6 +18,7 @@ export const demoDrafts: Post[] = [
         hashtags: ["#GrowthMindset", "#Consistency"],
         imageUrl: "https://picsum.photos/seed/tue/600/400",
         status: "DRAFT",
+        platform: "LinkedIn",
     },
     {
         id: "3",
@@ -25,6 +27,7 @@ export const demoDrafts: Post[] = [
         hashtags: ["#Motivation", "#WednesdayWisdom"],
         imageUrl: "https://picsum.photos/seed/wed/600/400",
         status: "DRAFT",
+        platform: "LinkedIn",
     },
     {
         id: "4",
@@ -33,6 +36,7 @@ export const demoDrafts: Post[] = [
         hashtags: ["#AI", "#FutureOfWork"],
         imageUrl: "https://picsum.photos/seed/thu/600/400",
         status: "DRAFT",
+        platform: "LinkedIn",
     },
     {
         id: "5",
@@ -41,6 +45,7 @@ export const demoDrafts: Post[] = [
         hashtags: ["#FridayFeeling", "#Success"],
         imageUrl: "https://picsum.photos/seed/fri/600/400",
         status: "DRAFT",
+        platform: "LinkedIn",
     },
     {
         id: "6",
@@ -49,6 +54,7 @@ export const demoDrafts: Post[] = [
         hashtags: ["#WeekendVibes", "#Mindfulness"],
         imageUrl: "https://picsum.photos/seed/sat/600/400",
         status: "DRAFT",
+        platform: "LinkedIn",
     },
     {
         id: "7",
@@ -57,5 +63,6 @@ export const demoDrafts: Post[] = [
         hashtags: ["#SundayPrep", "#Productivity"],
         imageUrl: "https://picsum.photos/seed/sun/600/400",
         status: "DRAFT",
+        platform: "LinkedIn",
     },
 ];

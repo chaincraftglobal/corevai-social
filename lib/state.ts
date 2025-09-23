@@ -13,9 +13,12 @@ export type Post = {
     hashtags: string[];
     imageUrl: string;
     status: Status;
-    // ✅ add this:
+
+    // ✅ Add platform
+    platform: "LinkedIn" | "Twitter" | "Instagram" | "Facebook";
+
+    // publishing info
     publishedAt?: string;
-    // metrics
     likes?: number;
     comments?: number;
     impressions?: number;
