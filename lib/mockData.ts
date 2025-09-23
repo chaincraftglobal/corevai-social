@@ -1,14 +1,7 @@
 // lib/mockData.ts
-export type DraftPost = {
-    id: string;
-    day: string;
-    caption: string;
-    hashtags: string[];
-    imageUrl: string;
-    status: "DRAFT" | "SCHEDULED" | "PUBLISHED";
-};
+import type { Post } from "./state";
 
-export const demoDrafts: DraftPost[] = [
+export const demoDrafts: Post[] = [
     {
         id: "1",
         day: "Monday",
