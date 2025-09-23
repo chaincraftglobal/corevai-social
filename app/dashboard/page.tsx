@@ -7,7 +7,7 @@ import CalendarBoard from "@/components/features/CalendarBoard";
 import KPI from "@/components/features/KPI";
 
 export default function DashboardPage() {
-    const { posts, setPosts, approve, approveAll } = usePostsStore();
+    const { posts, setPosts, approve, approveAll, reset } = usePostsStore(); // added reset
     const draftCount = posts.filter((p) => p.status === "DRAFT").length;
     const scheduledCount = posts.filter((p) => p.status === "SCHEDULED").length;
     const publishedCount = posts.filter((p) => p.status === "PUBLISHED").length;
@@ -26,13 +26,22 @@ export default function DashboardPage() {
                 >
                     Generate Plan
                 </button>
+
                 {posts.length > 0 && (
-                    <button
-                        onClick={approveAll}
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    >
-                        Approve All
-                    </button>
+                    <>
+                        <button
+                            onClick={approveAll}
+                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        >
+                            Approve All
+                        </button>
+                        <button
+                            onClick={reset}
+                            className="bg-slate-200 text-slate-700 px-4 py-2 rounded hover:bg-slate-300"
+                        >
+                            Reset Demo
+                        </button>
+                    </>
                 )}
             </div>
 

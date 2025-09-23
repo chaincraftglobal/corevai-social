@@ -13,8 +13,6 @@ export type Post = {
     hashtags: string[];
     imageUrl: string;
     status: Status;
-    publishedAt?: string;
-    platform?: string;
     likes?: number;
     comments?: number;
     impressions?: number;
@@ -22,21 +20,18 @@ export type Post = {
 
 type Store = {
     posts: Post[];
-    setPosts: (posts: Post[]) => void;
+    setPosts: (p: Post[]) => void;
     approve: (id: string) => void;
     approveAll: () => void;
     publishAllNow: () => void;
+    reset: () => void;   // ✅ new
 };
-
-function randomBetween(min: number, max: number) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 
 export const usePostsStore = create<Store>()(
     persist(
         (set, get) => ({
             posts: [],
-            setPosts: (posts) => set({ posts }),
+            setPosts: (p) => set({ posts: p }),
             approve: (id) =>
                 set({
                     posts: get().posts.map((p) =>
@@ -45,7 +40,9 @@ export const usePostsStore = create<Store>()(
                 }),
             approveAll: () =>
                 set({
-                    posts: get().posts.map((p) => ({ ...p, status: "SCHEDULED" })),
+                    posts: get().posts.map((p) =>
+                        p.status === "DRAFT" ? { ...p, status: "SCHEDULED" } : p
+                    ),
                 }),
             publishAllNow: () =>
                 set({
@@ -54,19 +51,15 @@ export const usePostsStore = create<Store>()(
                             ? {
                                 ...p,
                                 status: "PUBLISHED",
-                                publishedAt: new Date().toISOString(),
-                                platform: "LinkedIn (Demo)",
-                                likes: randomBetween(50, 500),
-                                comments: randomBetween(0, 50),
-                                impressions: randomBetween(1000, 8000),
+                                likes: Math.floor(Math.random() * 500),
+                                comments: Math.floor(Math.random() * 100),
+                                impressions: Math.floor(Math.random() * 2000),
                             }
                             : p
                     ),
                 }),
+            reset: () => set({ posts: [] }), // ✅ added reset
         }),
-        {
-            name: "corevai-posts", // localStorage key
-            partialize: (state) => ({ posts: state.posts }), // only persist posts
-        }
+        { name: "corevai-posts" }
     )
 );
