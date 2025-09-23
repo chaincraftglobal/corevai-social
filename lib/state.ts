@@ -6,11 +6,14 @@ import { persist } from "zustand/middleware";
 
 export type Status = "DRAFT" | "SCHEDULED" | "PUBLISHED";
 
+// ✅ New Platform type
+export type Platform = "LinkedIn" | "Twitter" | "Instagram" | "Facebook";
+
 export type BrandInfo = {
     name: string;
     niche: string;
     tone: string;
-    platforms: string[];
+    platforms: Platform[];  // use the Platform union here
 };
 
 export type Post = {
@@ -20,9 +23,7 @@ export type Post = {
     hashtags: string[];
     imageUrl: string;
     status: Status;
-
-    platform: "LinkedIn" | "Twitter" | "Instagram" | "Facebook";
-
+    platform: Platform;     // use the Platform union here
     publishedAt?: string;
     likes?: number;
     comments?: number;
@@ -37,7 +38,6 @@ type Store = {
     publishAllNow: () => void;
     reset: () => void;
 
-    // ✅ new
     brand: BrandInfo | null;
     setBrand: (b: BrandInfo) => void;
 };
@@ -76,7 +76,6 @@ export const usePostsStore = create<Store>()(
                 }),
             reset: () => set({ posts: [] }),
 
-            // ✅ brand info
             brand: null,
             setBrand: (b) => set({ brand: b }),
         }),
