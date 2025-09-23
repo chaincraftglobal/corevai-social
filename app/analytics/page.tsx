@@ -43,7 +43,10 @@ export default function AnalyticsPage() {
                 <KPI label="Impressions" value={totalImpr} />
                 <KPI label="Likes" value={totalLikes} />
                 <KPI label="Comments" value={totalComments} />
-                <KPI label="Best Post" value={best ? `${best.day}` : 0} />
+                <KPI
+                    label="Best Post"
+                    value={best ? (best.likes ?? 0) + (best.comments ?? 0) : 0}
+                />
             </div>
 
             {/* Chart */}
