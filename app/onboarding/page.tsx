@@ -112,6 +112,18 @@ export default function OnboardingPage() {
                     Save & Continue
                 </button>
             </form>
+
+            <button
+                type="button"
+                onClick={() => {
+                    const state = usePostsStore.getState();
+                    console.log("Brand in store:", state.brand);
+                    alert(`Check console → Brand: ${JSON.stringify(state.brand, null, 2)}`);
+                }}
+                className="mt-4 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+            >
+                Debug: Log Brand
+            </button>
         </div>
     );
 }
