@@ -19,6 +19,7 @@ export type BrandInfo = {
 export type Post = {
     id: string;
     day: string;
+    time?: string; // ✅ add this
     caption: string;
     hashtags: string[];
     imageUrl: string;
