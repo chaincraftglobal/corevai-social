@@ -5,9 +5,11 @@ import type { Post } from "@/lib/state";
 export default function CalendarBoard({
     posts,
     onApprove,
+    onToggleLock, // ✅
 }: {
     posts: Post[];
     onApprove?: (id: string) => void;
+    onToggleLock?: (id: string) => void; // ✅
 }) {
     if (!posts.length) {
         return (
@@ -20,7 +22,8 @@ export default function CalendarBoard({
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
             {posts.map((post) => (
-                <PostCard key={post.id} {...post} onApprove={onApprove} />
+                <PostCard key={post.id} {...post} onApprove={onApprove} onToggleLock={onToggleLock} />
+
             ))}
         </div>
     );

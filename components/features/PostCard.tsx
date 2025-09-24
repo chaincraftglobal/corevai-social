@@ -11,6 +11,11 @@ type Props = {
     status: "DRAFT" | "SCHEDULED" | "PUBLISHED";
     platform: Platform; // ✅ show which network this post targets
     onApprove?: (id: string) => void;
+
+    // ✅ R6
+    locked?: boolean;
+    onToggleLock?: (id: string) => void;
+
 };
 
 export default function PostCard({
@@ -34,10 +39,10 @@ export default function PostCard({
                 </span>
                 <span
                     className={`px-2 py-0.5 rounded text-[10px] ${status === "DRAFT"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : status === "SCHEDULED"
-                                ? "bg-blue-100 text-blue-700"
-                                : "bg-green-100 text-green-700"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : status === "SCHEDULED"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-green-100 text-green-700"
                         }`}
                 >
                     {status}
