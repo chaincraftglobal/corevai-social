@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { usePostsStore } from "@/lib/state";
+import { usePostsStore, type Post } from "@/lib/state";
 import { generatePlanRemote } from "@/lib/agent";
 import { startOfNextWeek, formatDateISO, DAY_NAMES } from "@/lib/dates";
+import type { Status, Platform } from "@prisma/client";
 
 const CADENCES = [1, 3, 5];
 const WEEK_OPTIONS = [2, 3, 4, 5, 6];
@@ -24,18 +25,18 @@ export default function PlannerPage() {
             setLoading(true);
 
             // Get 7 AI suggestions (caption/hashtags/time/platform). We'll reuse/rotate them.
-            const base = await generatePlanRemote(brand);
+            const base: Post[] = await generatePlanRemote(brand);
 
             const start = startOfNextWeek();
-            const result = [];
+            const result: Post[] = []; // ✅ explicit typing
             let ptr = 0;
 
             for (let w = 0; w < weeks; w++) {
                 // choose weekday indices based on cadence
                 const slots =
                     cadence === 1 ? [1] :               // Tue
-                        cadence === 3 ? [1, 3, 5] :         // Tue/Thu/Sat (spaced)
-                            [1, 2, 3, 4, 5];                    // Mon-Fri
+                        cadence === 3 ? [1, 3, 5] :         // Tue/Thu/Sat
+                            [1, 2, 3, 4, 5];                    // Mon–Fri
 
                 for (let i = 0; i < slots.length; i++) {
                     const dayOffset = slots[i];
@@ -48,12 +49,19 @@ export default function PlannerPage() {
                     const s = base[ptr % base.length];
                     ptr++;
 
+                    // Ensure platform is a Prisma enum (fallback LinkedIn)
+                    const platform: Platform = (s.platform ?? "LinkedIn") as Platform;
+
                     result.push({
-                        ...s,
                         id: `plan-${w}-${i}-${Date.now()}`,
                         day: dayName,
-                        dateISO: iso,     // ✅ real calendar date
-                        status: "DRAFT" as const,
+                        dateISO: iso,                 // ✅ real calendar date
+                        time: s.time,                 // optional
+                        caption: s.caption,
+                        hashtags: s.hashtags,
+                        imageUrl: s.imageUrl,
+                        status: "DRAFT" as Status,    // ✅ enum literal
+                        platform,                     // ✅ enum
                         locked: false,
                     });
                 }
@@ -74,7 +82,8 @@ export default function PlannerPage() {
         <div className="max-w-xl mx-auto py-10">
             <h1 className="text-3xl font-bold mb-4">Planner</h1>
             <p className="text-slate-600 mb-6">
-                Plan posts with real dates. Starts next Monday: <span className="font-medium">{nextMonday}</span>.
+                Plan posts with real dates. Starts next Monday:{" "}
+                <span className="font-medium">{nextMonday}</span>.
             </p>
 
             <div className="space-y-5">
