@@ -6,13 +6,14 @@ import { usePostsStore } from "@/lib/state";
 import { generatePlanRemote } from "@/lib/agent";
 import CalendarBoard from "@/components/features/CalendarBoard";
 import KPI from "@/components/features/KPI";
+import OnboardingHint from "@/components/app/OnboardingHint"; // ✅ import
 
 export default function DashboardPage() {
     const router = useRouter();
     const {
         posts, setPosts, approve, approveAll, reset, brand,
         autoApprove, setAutoApprove,
-        toggleLock, regenerateUnlocked, // ✅ R6
+        toggleLock, regenerateUnlocked,
     } = usePostsStore();
 
     const [loading, setLoading] = useState(false);
@@ -26,7 +27,6 @@ export default function DashboardPage() {
         try {
             setLoading(true);
             const plan = await generatePlanRemote(brand);
-            // Reset locks on fresh plan
             setPosts(plan.map((p) => ({ ...p, locked: false })));
             if (autoApprove) queueMicrotask(() => approveAll());
         } catch (e: unknown) {
@@ -52,6 +52,9 @@ export default function DashboardPage() {
     return (
         <div className="max-w-5xl mx-auto">
             <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+
+            {/* ✅ Show onboarding banner if brand not set */}
+            <OnboardingHint />
 
             <p className="mb-4 text-slate-600">
                 {brand ? (
