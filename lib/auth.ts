@@ -1,46 +1,48 @@
+// lib/auth.ts
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
+import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";            // ✅ add
 import type { NextAuthOptions } from "next-auth";
-import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
-    session: { strategy: "database" },
-    pages: { signIn: "/signin" },
+    session: { strategy: "jwt" },
     providers: [
-        GoogleProvider({
+        // ✅ Google OAuth
+        Google({
             clientId: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            allowDangerousEmailAccountLinking: true, // lets users link same email across methods
         }),
-        CredentialsProvider({
-            name: "Credentials",
+
+        // ✅ Credentials (kept)
+        Credentials({
+            name: "Email & Password",
             credentials: {
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" },
             },
-            async authorize(credentials) {
-                if (!credentials?.email || !credentials?.password) return null;
-
-                const user = await prisma.user.findUnique({
-                    where: { email: credentials.email },
-                });
+            async authorize(creds) {
+                if (!creds?.email || !creds?.password) return null;
+                const user = await prisma.user.findUnique({ where: { email: creds.email } });
                 if (!user?.passwordHash) return null;
-
-                const ok = await bcrypt.compare(credentials.password, user.passwordHash);
+                const ok = await bcrypt.compare(creds.password, user.passwordHash);
                 if (!ok) return null;
-
-                // Return the full user object (NextAuth will strip sensitive fields)
-                return user;
+                return { id: user.id, name: user.name ?? null, email: user.email ?? null };
             },
         }),
     ],
+    pages: { signIn: "/signin" },
     callbacks: {
-        async session({ session, user }) {
-            if (session.user) (session.user as any).id = user.id;
+        async jwt({ token, user }) {
+            if (user?.id) token.uid = user.id;
+            return token;
+        },
+        async session({ session, token }) {
+            if (token?.uid) (session as any).userId = token.uid;
             return session;
         },
     },
-    secret: process.env.NEXTAUTH_SECRET,
 };
