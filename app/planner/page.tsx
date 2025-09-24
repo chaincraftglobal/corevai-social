@@ -53,7 +53,7 @@ export default function PlannerPage() {
                         id: `plan-${w}-${i}-${Date.now()}`,
                         day: dayName,
                         dateISO: iso,     // ✅ real calendar date
-                        status: "DRAFT",
+                        status: "DRAFT" as const,
                         locked: false,
                     });
                 }
