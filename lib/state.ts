@@ -12,6 +12,7 @@ export type BrandInfo = {
     niche: string;
     tone: "Friendly" | "Professional" | "Witty" | "Inspirational";
     platforms: Platform[];
+    
 };
 
 export type Post = {
