@@ -1,5 +1,6 @@
 // app/feed/page.tsx
 "use client";
+import OnboardingHint from "@/components/app/OnboardingHint"; // ✅ add
 
 import { usePostsStore } from "@/lib/state";
 import FeedList from "@/components/features/FeedList";

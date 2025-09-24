@@ -1,5 +1,6 @@
 "use client";
 
+import OnboardingHint from "@/components/app/OnboardingHint"; // ✅ add
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePostsStore, type Post } from "@/lib/state";

@@ -1,5 +1,6 @@
 "use client";
 
+import OnboardingHint from "@/components/app/OnboardingHint"; // ✅ add
 import { usePostsStore } from "@/lib/state";
 import KPI from "@/components/features/KPI";
 import AnalyticsChart from "@/components/features/AnalyticsChart";
