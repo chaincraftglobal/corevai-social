@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { usePostsStore, type Post } from "@/lib/state";
 import { generatePlanRemote } from "@/lib/agent";
 import { startOfNextWeek, formatDateISO, DAY_NAMES } from "@/lib/dates";
-import type { Status, Platform } from "@prisma/client";
+import type { Status, Platform } from "@/lib/types";
 
 
 const CADENCES = [1, 3, 5];
