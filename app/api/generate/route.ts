@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { type BrandInfo, type Platform, type Post } from "@/lib/state";
 import { pickTime } from "@/lib/scheduler";
+import { openai } from "@/lib/openai";  // ✅ use centralized client
+
 import { seededImg } from "@/lib/utils";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });

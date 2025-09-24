@@ -7,6 +7,7 @@ import { generatePlanRemote } from "@/lib/agent";
 import { startOfNextWeek, formatDateISO, DAY_NAMES } from "@/lib/dates";
 import type { Status, Platform } from "@prisma/client";
 
+
 const CADENCES = [1, 3, 5];
 const WEEK_OPTIONS = [2, 3, 4, 5, 6];
 

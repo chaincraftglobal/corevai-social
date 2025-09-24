@@ -3,6 +3,7 @@ import type { BrandInfo, Post, Platform } from "./state";
 import { seededImg } from "./utils";
 import { pickTime } from "./scheduler"; // ✅ add this
 
+
 const CAPTIONS: Record<BrandInfo["tone"], string[]> = {
     Friendly: [
         "Hey friends 👋 let’s talk about {{niche}} today!",
@@ -51,15 +52,15 @@ export function generatePlan(brand: BrandInfo): Post[] {
 }
 
 export async function generatePlanRemote(brand: BrandInfo): Promise<Post[]> {
-  const res = await fetch("/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ brand }),
-  });
-  if (!res.ok) {
-    const msg = await res.text().catch(() => "");
-    throw new Error(`Generate failed: ${res.status} ${msg}`);
-  }
-  const data = await res.json();
-  return data.posts as Post[];
+    const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brand }),
+    });
+    if (!res.ok) {
+        const msg = await res.text().catch(() => "");
+        throw new Error(`Generate failed: ${res.status} ${msg}`);
+    }
+    const data = await res.json();
+    return data.posts as Post[];
 }
