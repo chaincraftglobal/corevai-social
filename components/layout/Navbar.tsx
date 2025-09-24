@@ -1,17 +1,20 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/feed", label: "Feed" },
     { href: "/analytics", label: "Analytics" },
-]
+    { href: "/planner", label: "Planner" },
+];
 
 export default function Navbar() {
-    const pathname = usePathname()
+    const pathname = usePathname();
+    const { data: session } = useSession();
 
     return (
         <nav className="w-full border-b bg-white shadow-sm">
@@ -20,7 +23,7 @@ export default function Navbar() {
                     CoreVAI Social
                 </Link>
 
-                <div className="flex gap-6">
+                <div className="flex items-center gap-6">
                     {navLinks.map(({ href, label }) => (
                         <Link
                             key={href}
@@ -35,8 +38,32 @@ export default function Navbar() {
                             {label}
                         </Link>
                     ))}
+
+                    {!session ? (
+                        <div className="flex items-center gap-3">
+                            <Link
+                                href="/signup"
+                                className="text-sm px-3 py-1 border rounded hover:bg-slate-50"
+                            >
+                                Sign up
+                            </Link>
+                            <button
+                                onClick={() => signIn(undefined, { callbackUrl: "/dashboard" })}
+                                className="text-sm px-3 py-1 border rounded hover:bg-slate-50"
+                            >
+                                Sign in
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => signOut({ callbackUrl: "/" })}
+                            className="text-sm px-3 py-1 border rounded hover:bg-slate-50"
+                        >
+                            Sign out
+                        </button>
+                    )}
                 </div>
             </div>
         </nav>
-    )
+    );
 }
