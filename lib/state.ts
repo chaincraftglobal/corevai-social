@@ -18,6 +18,7 @@ export type Post = {
     id: string;
     day: string;
     time?: string;
+    dateISO?: string;
     caption: string;
     hashtags: string[];
     imageUrl: string;
