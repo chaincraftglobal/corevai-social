@@ -1,31 +1,24 @@
+// app/onboarding/page.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePostsStore, type BrandInfo, type Platform } from "@/lib/state";
 
-// ✅ Strongly-typed list of allowed platforms
-const ALL_PLATFORMS: Platform[] = ["LinkedIn", "Twitter", "Instagram", "Facebook"];
-
 export default function OnboardingPage() {
-    const { setBrand } = usePostsStore();
     const router = useRouter();
+    const { setBrand } = usePostsStore();
 
-    // ✅ Initialize with Platform[] (not string[])
+    // ✅ give tone a valid default; type platforms as Platform[]
     const [form, setForm] = useState<BrandInfo>({
         name: "",
         niche: "",
-        tone: "",
-        platforms: [],            // Platform[]
+        tone: "Friendly",
+        platforms: [], // Platform[]
     });
 
-    const handleChange = (field: keyof BrandInfo, value: string) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
-    };
-
-    // ✅ Accept Platform, and return BrandInfo (with Platform[]), so TS is happy
     const handleCheckbox = (platform: Platform) => {
-        setForm((prev): BrandInfo => ({
+        setForm((prev) => ({
             ...prev,
             platforms: prev.platforms.includes(platform)
                 ? prev.platforms.filter((p) => p !== platform)
@@ -40,50 +33,44 @@ export default function OnboardingPage() {
     };
 
     return (
-        <div className="max-w-lg mx-auto py-10">
-            <h1 className="text-3xl font-bold mb-6">Tell us about your brand</h1>
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Brand Name */}
+        <div className="max-w-xl mx-auto py-10">
+            <h1 className="text-3xl font-bold mb-4">Onboarding</h1>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Name */}
                 <div>
-                    <label className="block mb-1 font-medium">Brand Name</label>
+                    <label className="block text-sm font-medium mb-1">Brand / Business Name</label>
                     <input
-                        type="text"
+                        className="border rounded px-3 py-2 w-full"
                         value={form.name}
-                        onChange={(e) => handleChange("name", e.target.value)}
+                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                         required
-                        className="w-full border rounded px-3 py-2"
-                        placeholder="e.g. ChainCraft Global"
                     />
                 </div>
 
                 {/* Niche */}
                 <div>
-                    <label className="block mb-1 font-medium">Niche</label>
-                    <select
+                    <label className="block text-sm font-medium mb-1">Niche</label>
+                    <input
+                        className="border rounded px-3 py-2 w-full"
                         value={form.niche}
-                        onChange={(e) => handleChange("niche", e.target.value)}
+                        onChange={(e) => setForm((f) => ({ ...f, niche: e.target.value }))}
                         required
-                        className="w-full border rounded px-3 py-2"
-                    >
-                        <option value="">Select niche</option>
-                        <option value="Tech">Tech</option>
-                        <option value="Fitness">Fitness</option>
-                        <option value="Finance">Finance</option>
-                        <option value="Education">Education</option>
-                        <option value="Marketing">Marketing</option>
-                    </select>
+                    />
                 </div>
 
                 {/* Tone */}
                 <div>
-                    <label className="block mb-1 font-medium">Tone</label>
+                    <label className="block text-sm font-medium mb-1">Tone</label>
                     <select
+                        className="border rounded px-3 py-2 w-full"
                         value={form.tone}
-                        onChange={(e) => handleChange("tone", e.target.value)}
-                        required
-                        className="w-full border rounded px-3 py-2"
+                        onChange={(e) =>
+                            setForm((f) => ({
+                                ...f,
+                                tone: e.target.value as BrandInfo["tone"], // ✅ cast to union
+                            }))
+                        }
                     >
-                        <option value="">Select tone</option>
                         <option value="Friendly">Friendly</option>
                         <option value="Professional">Professional</option>
                         <option value="Witty">Witty</option>
@@ -93,14 +80,14 @@ export default function OnboardingPage() {
 
                 {/* Platforms */}
                 <div>
-                    <label className="block mb-1 font-medium">Preferred Platforms</label>
-                    <div className="flex gap-4 flex-wrap">
-                        {ALL_PLATFORMS.map((p) => (
+                    <label className="block text-sm font-medium mb-1">Platforms</label>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                        {(["LinkedIn", "Twitter", "Instagram", "Facebook"] as Platform[]).map((p) => (
                             <label key={p} className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
                                     checked={form.platforms.includes(p)}
-                                    onChange={() => handleCheckbox(p)}  // ✅ p is Platform
+                                    onChange={() => handleCheckbox(p)}
                                 />
                                 {p}
                             </label>
@@ -108,22 +95,13 @@ export default function OnboardingPage() {
                     </div>
                 </div>
 
-                <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                <button
+                    type="submit"
+                    className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700"
+                >
                     Save & Continue
                 </button>
             </form>
-
-            <button
-                type="button"
-                onClick={() => {
-                    const state = usePostsStore.getState();
-                    console.log("Brand in store:", state.brand);
-                    alert(`Check console → Brand: ${JSON.stringify(state.brand, null, 2)}`);
-                }}
-                className="mt-4 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-            >
-                Debug: Log Brand
-            </button>
         </div>
     );
 }
