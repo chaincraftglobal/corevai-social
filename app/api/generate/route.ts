@@ -3,6 +3,9 @@ import OpenAI from "openai";
 import { type BrandInfo, type Platform, type Post } from "@/lib/state";
 import { pickTime } from "@/lib/scheduler";
 import { openai } from "@/lib/openai";  // ✅ use centralized client
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+
 
 import { seededImg } from "@/lib/utils";
 
@@ -62,6 +65,12 @@ Goal: Create a 7-day plan with concise, platform-friendly captions and helpful h
                 { role: "user", content: user },
             ],
         });
+
+        // inside POST handler:
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.email) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
 
         const raw: string = completion.choices[0]?.message?.content ?? "{}";
 

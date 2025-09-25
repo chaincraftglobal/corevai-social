@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
-const navLinks = [
+const appLinks = [
     { href: "/dashboard", label: "Dashboard" },
+    { href: "/planner", label: "Planner" },
     { href: "/feed", label: "Feed" },
     { href: "/analytics", label: "Analytics" },
-    { href: "/planner", label: "Planner" },
 ];
 
 export default function Navbar() {
@@ -24,43 +24,38 @@ export default function Navbar() {
                 </Link>
 
                 <div className="flex items-center gap-6">
-                    {navLinks.map(({ href, label }) => (
-                        <Link
-                            key={href}
-                            href={href}
-                            className={cn(
-                                "text-sm font-medium hover:text-teal-600",
-                                pathname.startsWith(href)
-                                    ? "text-teal-600 border-b-2 border-teal-600 pb-1"
-                                    : "text-slate-600"
-                            )}
-                        >
-                            {label}
-                        </Link>
-                    ))}
-
-                    {!session ? (
-                        <div className="flex items-center gap-3">
-                            <Link
-                                href="/signup"
-                                className="text-sm px-3 py-1 border rounded hover:bg-slate-50"
-                            >
-                                Sign up
-                            </Link>
+                    {session ? (
+                        <>
+                            {appLinks.map(({ href, label }) => (
+                                <Link
+                                    key={href}
+                                    href={href}
+                                    className={cn(
+                                        "text-sm font-medium hover:text-teal-600",
+                                        pathname.startsWith(href)
+                                            ? "text-teal-600 border-b-2 border-teal-600 pb-1"
+                                            : "text-slate-600"
+                                    )}
+                                >
+                                    {label}
+                                </Link>
+                            ))}
                             <button
-                                onClick={() => signIn(undefined, { callbackUrl: "/dashboard" })}
+                                onClick={() => signOut({ callbackUrl: "/" })}
                                 className="text-sm px-3 py-1 border rounded hover:bg-slate-50"
                             >
-                                Sign in
+                                Sign out
                             </button>
-                        </div>
+                        </>
                     ) : (
-                        <button
-                            onClick={() => signOut({ callbackUrl: "/" })}
-                            className="text-sm px-3 py-1 border rounded hover:bg-slate-50"
-                        >
-                            Sign out
-                        </button>
+                        <>
+                            <Link href="/signin" className="text-sm px-3 py-1 border rounded hover:bg-slate-50">
+                                Sign in
+                            </Link>
+                            <Link href="/signup" className="text-sm px-3 py-1 border rounded hover:bg-slate-50">
+                                Create account
+                            </Link>
+                        </>
                     )}
                 </div>
             </div>
