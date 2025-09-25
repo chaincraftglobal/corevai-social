@@ -13,7 +13,7 @@ export async function GET() {
     const user = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!user) return NextResponse.json({ brand: null }, { status: 200 });
 
-    const brand = await prisma.brandInfo.findFirst({ where: { userId: user.id } });
+    const brand = await prisma.brandInfo.findUnique({ where: { userId: user.id } });
     return NextResponse.json({ brand }, { status: 200 });
 }
 
@@ -30,20 +30,11 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
 
-    // 🔎 Look for existing brand for this user
-    const existing = await prisma.brandInfo.findFirst({ where: { userId: user.id } });
-
-    let saved;
-    if (existing) {
-        saved = await prisma.brandInfo.update({
-            where: { id: existing.id },
-            data: { name, niche, tone, platforms },
-        });
-    } else {
-        saved = await prisma.brandInfo.create({
-            data: { name, niche, tone, platforms, userId: user.id },
-        });
-    }
+    const saved = await prisma.brandInfo.upsert({
+        where: { userId: user.id },           // ✅ works now (unique)
+        update: { name, niche, tone, platforms },
+        create: { name, niche, tone, platforms, userId: user.id },
+    });
 
     return NextResponse.json({ ok: true, brand: saved }, { status: 200 });
 }

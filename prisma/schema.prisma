@@ -1,11 +1,9 @@
 // prisma/schema.prisma
 
-// ---------- Generator ----------
 generator client {
   provider = "prisma-client-js"
 }
 
-// ---------- Datasource ----------
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -36,7 +34,6 @@ model User {
   sessions      Session[]
   posts         Post[]
   brands        BrandInfo[]
-  // ✅ add this line back
   passwordHash  String?
 
   createdAt DateTime @default(now())
@@ -86,20 +83,26 @@ model Post {
   dateISO     String?
   time        String?
   caption     String
-  hashtags    String[] // maps to text[] in Postgres
+  hashtags    String[] // Postgres text[]
   imageUrl    String
-  status      Status // ✅ now enum
-  platform    Platform // ✅ now enum
+  status      Status
+  platform    Platform
   locked      Boolean   @default(false)
   publishedAt DateTime?
   likes       Int?
   comments    Int?
   impressions Int?
-  userId      String?
 
-  user      User?    @relation(fields: [userId], references: [id])
+  // 🔴 NOW REQUIRED
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([dateISO])
 }
 
 model BrandInfo {
@@ -107,10 +110,11 @@ model BrandInfo {
   name      String
   niche     String
   tone      String
-  platforms Platform[] // ✅ enum array
-  userId    String
+  platforms Platform[]
+  // ✅ one brand per user
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
