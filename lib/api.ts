@@ -1,35 +1,74 @@
-import type { BrandInfo, Post } from "@/lib/state";
+// lib/api.ts
+import type { BrandInfo, Post } from "@/lib/state"
 
-export async function fetchBrand(): Promise<BrandInfo | null> {
-    const res = await fetch("/api/brand", { cache: "no-store" });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data?.brand ?? null;
+// Small fetch helper
+async function j<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
+    const res = await fetch(input, init)
+    if (!res.ok) {
+        let msg = `HTTP ${res.status}`
+        try {
+            const data = await res.json()
+            if (data?.error) msg = data.error
+        } catch { }
+        throw new Error(msg)
+    }
+    return res.json() as Promise<T>
 }
 
-export async function saveBrand(brand: BrandInfo) {
-    const res = await fetch("/api/brand", {
+/* ----------------- BRAND ----------------- */
+
+export async function fetchBrand(): Promise<BrandInfo | null> {
+    try {
+        const data = await j<{ brand: BrandInfo | null }>("/api/brand", { cache: "no-store" })
+        return data.brand ?? null
+    } catch {
+        return null
+    }
+}
+
+export async function saveBrand(brand: BrandInfo): Promise<BrandInfo> {
+    const data = await j<{ ok: boolean; brand: BrandInfo }>("/api/brand", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(brand),
-    });
-    if (!res.ok) throw new Error("Failed to save brand");
-    return res.json();
+    })
+    return data.brand
 }
+
+/* ----------------- POSTS ----------------- */
 
 export async function fetchPosts(): Promise<Post[]> {
-    const res = await fetch("/api/posts", { cache: "no-store" });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data?.posts ?? [];
+    try {
+        const data = await j<{ posts: Post[] }>("/api/posts", { cache: "no-store" })
+        return Array.isArray(data.posts) ? data.posts : []
+    } catch {
+        return []
+    }
 }
 
-export async function savePosts(posts: Post[]) {
-    const res = await fetch("/api/posts", {
+/** Saves posts with replace-all semantics (matches our API). */
+export async function savePosts(posts: Post[]): Promise<{ ok: boolean; created: number }> {
+    // API accepts either {posts: [...] } or [...]; we send {posts} for clarity
+    return j<{ ok: boolean; created: number }>("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ posts }),
-    });
-    if (!res.ok) throw new Error("Failed to save posts");
-    return res.json();
+    })
+}
+
+/* ----------------- USAGE / BILLING ----------------- */
+
+export type UsageInfo = {
+    credits: number
+    trialEndsAt: string | null
+    plan: "FREE" | "BRONZE" | "SILVER" | "GOLD" | "DIAMOND"
+}
+
+export async function fetchUsage(): Promise<UsageInfo> {
+    try {
+        const data = await j<UsageInfo>("/api/usage", { cache: "no-store" })
+        return data
+    } catch {
+        return { credits: 0, trialEndsAt: null, plan: "FREE" }
+    }
 }
