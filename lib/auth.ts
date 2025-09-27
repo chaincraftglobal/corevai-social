@@ -6,7 +6,10 @@ import type { NextAuthOptions } from "next-auth";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
-// Build providers array safely (Google optional)
+const TRIAL_DAYS = Number(process.env.TRIAL_DAYS ?? 7);
+const FREE_TRIAL_CREDITS = Number(process.env.FREE_TRIAL_CREDITS ?? 30);
+
+// Build providers safely (Google optional)
 const providers: NextAuthOptions["providers"] = [];
 
 // ✅ Google OAuth (only if env vars set)
@@ -49,14 +52,61 @@ export const authOptions: NextAuthOptions = {
     session: { strategy: "jwt" },
     providers,
     pages: { signIn: "/signin" },
+
     callbacks: {
         async jwt({ token, user }) {
-            if (user?.id) token.uid = user.id;
+            if (user?.id) (token as any).uid = user.id;
             return token;
         },
         async session({ session, token }) {
-            if (token?.uid) (session as any).userId = token.uid;
+            if ((token as any)?.uid) (session as any).userId = (token as any).uid;
             return session;
+        },
+
+        // 🔧 Safety net: if a user logs in but has missing credits/trial, seed them
+        async signIn({ user }) {
+            try {
+                if (!user?.id) return true;
+
+                const row = await prisma.user.findUnique({
+                    where: { id: user.id },
+                    select: { credits: true, trialEndsAt: true, plan: true },
+                });
+                if (!row) return true;
+
+                const needsSeed = (row.credits ?? 0) === 0 && !row.trialEndsAt;
+                if (needsSeed) {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: {
+                            plan: "FREE",
+                            credits: FREE_TRIAL_CREDITS,
+                            trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 86400000),
+                        },
+                    });
+                }
+            } catch (e) {
+                console.warn("[auth] signIn seeding failed", e);
+            }
+            return true;
+        },
+    },
+
+    // 🌱 First-time Google OAuth user creation → seed credits/trial immediately
+    events: {
+        async createUser({ user }) {
+            try {
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: {
+                        plan: "FREE",
+                        credits: FREE_TRIAL_CREDITS,
+                        trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 86400000),
+                    },
+                });
+            } catch (e) {
+                console.warn("[auth] createUser seeding failed", e);
+            }
         },
     },
 };

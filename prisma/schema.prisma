@@ -23,6 +23,14 @@ enum Platform {
   Facebook
 }
 
+enum Plan {
+  FREE
+  BRONZE
+  SILVER
+  GOLD
+  DIAMOND
+}
+
 // ---------- NextAuth models ----------
 model User {
   id            String      @id @default(cuid())
@@ -35,6 +43,11 @@ model User {
   posts         Post[]
   brands        BrandInfo[]
   passwordHash  String?
+
+  // R5 fields
+  plan        String   @default("FREE")
+  trialEndsAt DateTime?
+  credits     Int      @default(30) // <- static fallback
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
