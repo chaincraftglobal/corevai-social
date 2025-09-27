@@ -1,16 +1,18 @@
 // lib/api.ts
 import type { BrandInfo, Post } from "@/lib/state"
 
-// Small fetch helper
+/* ----------------- tiny JSON fetch helper ----------------- */
 async function j<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
     const res = await fetch(input, init)
     if (!res.ok) {
-        let msg = `HTTP ${res.status}`
+        // Try to surface API error messages
         try {
             const data = await res.json()
-            if (data?.error) msg = data.error
-        } catch { }
-        throw new Error(msg)
+            if (data?.error) throw new Error(data.error)
+        } catch {
+            /* ignore parse error */
+        }
+        throw new Error(`HTTP ${res.status}`)
     }
     return res.json() as Promise<T>
 }
@@ -46,9 +48,8 @@ export async function fetchPosts(): Promise<Post[]> {
     }
 }
 
-/** Saves posts with replace-all semantics (matches our API). */
+/** Replace-all save (matches API semantics). */
 export async function savePosts(posts: Post[]): Promise<{ ok: boolean; created: number }> {
-    // API accepts either {posts: [...] } or [...]; we send {posts} for clarity
     return j<{ ok: boolean; created: number }>("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,9 +67,28 @@ export type UsageInfo = {
 
 export async function fetchUsage(): Promise<UsageInfo> {
     try {
-        const data = await j<UsageInfo>("/api/usage", { cache: "no-store" })
-        return data
+        return await j<UsageInfo>("/api/usage", { cache: "no-store" })
     } catch {
         return { credits: 0, trialEndsAt: null, plan: "FREE" }
     }
+}
+
+/* ----------------- GENERATION (OpenAI-backed) ----------------- */
+
+export type GenerateResult = {
+    posts: Post[]
+    cost: number
+    remaining: number
+}
+
+/**
+ * Calls /api/generate with the current brand.
+ * Throws with the API error message (e.g., "Not enough credits...") if non-OK.
+ */
+export async function generateRemote(brand: BrandInfo): Promise<GenerateResult> {
+    return j<GenerateResult>("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brand }),
+    })
 }
