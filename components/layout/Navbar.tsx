@@ -17,7 +17,7 @@ const appLinks = [
 type UsageInfo = {
     credits: number;
     trialEndsAt: string | null;
-    plan?: "FREE" | "BRONZE" | "SILVER" | "GOLD" | "DIAMOND";
+    plan: "FREE" | "BRONZE" | "SILVER" | "GOLD" | "DIAMOND";
 };
 
 export default function Navbar() {
@@ -42,12 +42,9 @@ export default function Navbar() {
             }
         }
         run();
-        return () => {
-            aborted = true;
-        };
+        return () => { aborted = true; };
     }, [session]);
 
-    // ✅ Always number | null (not string | number)
     const trialDaysLeft: number | null = usage?.trialEndsAt
         ? Math.max(
             0,
@@ -83,7 +80,6 @@ export default function Navbar() {
                                 </Link>
                             ))}
 
-                            {/* Credits / Trial pills */}
                             {usage && (
                                 <div className="flex items-center gap-2 text-sm text-slate-600">
                                     <span className="px-2 py-1 bg-slate-100 rounded">
