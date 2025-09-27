@@ -4,8 +4,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useUsage } from "@/lib/usage";
 
 const appLinks = [
     { href: "/dashboard", label: "Dashboard" },
@@ -14,36 +14,10 @@ const appLinks = [
     { href: "/analytics", label: "Analytics" },
 ];
 
-type UsageInfo = {
-    credits: number;
-    trialEndsAt: string | null;
-    plan: "FREE" | "BRONZE" | "SILVER" | "GOLD" | "DIAMOND";
-};
-
 export default function Navbar() {
     const pathname = usePathname();
     const { data: session } = useSession();
-    const [usage, setUsage] = useState<UsageInfo | null>(null);
-
-    useEffect(() => {
-        let aborted = false;
-        async function run() {
-            if (!session) {
-                setUsage(null);
-                return;
-            }
-            try {
-                const res = await fetch("/api/usage", { cache: "no-store" });
-                if (!res.ok) throw new Error("usage fetch failed");
-                const data = (await res.json()) as UsageInfo;
-                if (!aborted) setUsage(data);
-            } catch {
-                if (!aborted) setUsage(null);
-            }
-        }
-        run();
-        return () => { aborted = true; };
-    }, [session]);
+    const { usage, loading, refetch } = useUsage();
 
     const trialDaysLeft: number | null = usage?.trialEndsAt
         ? Math.max(
@@ -80,18 +54,25 @@ export default function Navbar() {
                                 </Link>
                             ))}
 
-                            {usage && (
-                                <div className="flex items-center gap-2 text-sm text-slate-600">
-                                    <span className="px-2 py-1 bg-slate-100 rounded">
-                                        Credits: {usage.credits ?? 0}
+                            {/* Credits / Trial pills */}
+                            <div className="flex items-center gap-2 text-sm text-slate-600">
+                                <span className="px-2 py-1 bg-slate-100 rounded">
+                                    Credits: {usage?.credits ?? 0}
+                                </span>
+                                {trialDaysLeft !== null && trialDaysLeft > 0 && (
+                                    <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded">
+                                        Trial ends in {trialDaysLeft}d
                                     </span>
-                                    {trialDaysLeft !== null && trialDaysLeft > 0 && (
-                                        <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded">
-                                            Trial ends in {trialDaysLeft}d
-                                        </span>
-                                    )}
-                                </div>
-                            )}
+                                )}
+                                <button
+                                    onClick={refetch}
+                                    className="text-xs px-2 py-1 border rounded hover:bg-slate-50 disabled:opacity-50"
+                                    disabled={loading}
+                                    title="Refresh usage"
+                                >
+                                    {loading ? "Refreshing…" : "Refresh"}
+                                </button>
+                            </div>
 
                             <button
                                 onClick={() => signOut({ callbackUrl: "/" })}
