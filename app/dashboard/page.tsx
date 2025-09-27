@@ -1,3 +1,4 @@
+// app/dashboard/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -18,26 +19,24 @@ export default function DashboardPage() {
     } = usePostsStore();
 
     const [loading, setLoading] = useState(false);
-    const [hydrated, setHydrated] = useState(false); // avoid flicker
+    const [hydrated, setHydrated] = useState(false);
 
     const draftCount = posts.filter((p) => p.status === "DRAFT").length;
     const scheduledCount = posts.filter((p) => p.status === "SCHEDULED").length;
     const publishedCount = posts.filter((p) => p.status === "PUBLISHED").length;
 
-    // 🔄 Initial hydrate from DB (if logged in)
+    // 🔄 Initial hydrate from DB
     useEffect(() => {
         (async () => {
             try {
-                // hydrate brand if missing
                 if (!brand) {
                     const b = await fetchBrand();
                     if (b) setBrand(b);
                 }
-                // hydrate posts
                 const fromDb = await fetchPosts();
                 if (fromDb.length > 0) setPosts(fromDb);
             } catch {
-                // ignore; demo still works offline
+                // offline/demo fallback is fine
             } finally {
                 setHydrated(true);
             }
@@ -49,9 +48,24 @@ export default function DashboardPage() {
         if (!brand) { router.push("/onboarding"); return; }
         try {
             setLoading(true);
+
+            // 1) Ask AI for a weekly plan
             const plan = await generatePlanRemote(brand);
-            setPosts(plan.map((p) => ({ ...p, locked: false })));
-            if (autoApprove) queueMicrotask(() => approveAll());
+
+            // 2) Reset locks on fresh plan
+            const next = plan.map((p) => ({ ...p, locked: false }));
+
+            // 3) Optionally auto-approve
+            const final = autoApprove
+                ? next.map((p) => ({ ...p, status: "SCHEDULED" as const }))
+                : next;
+
+            // 4) Update local + save to cloud
+            setPosts(final);
+            await savePosts(final);
+
+            // (Optional) You can also refresh navbar credits here if you wire a refresh hook
+            // await fetch("/api/usage", { cache: "no-store" });
         } catch (e: unknown) {
             alert(e instanceof Error ? e.message : "Failed to generate posts");
         } finally {
@@ -63,8 +77,17 @@ export default function DashboardPage() {
         if (!brand) { router.push("/onboarding"); return; }
         try {
             setLoading(true);
+
+            // 1) New AI captions
             const fresh = await generatePlanRemote(brand);
+
+            // 2) Replace only unlocked drafts
             regenerateUnlocked(fresh);
+
+            // 3) Persist to cloud
+            //    Read latest posts from store after mutate:
+            const latest = usePostsStore.getState().posts;
+            await savePosts(latest);
         } catch (e: unknown) {
             alert(e instanceof Error ? e.message : "Failed to regenerate");
         } finally {
@@ -89,7 +112,7 @@ export default function DashboardPage() {
         <div className="max-w-5xl mx-auto">
             <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
 
-            {/* Show onboarding banner if brand not set */}
+            {/* Onboarding nudge if brand missing */}
             <OnboardingHint />
 
             <p className="mb-4 text-slate-600">
@@ -102,36 +125,57 @@ export default function DashboardPage() {
 
             <div className="flex items-center gap-3 mb-4">
                 <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={autoApprove} onChange={(e) => setAutoApprove(e.target.checked)} />
+                    <input
+                        type="checkbox"
+                        checked={autoApprove}
+                        onChange={(e) => setAutoApprove(e.target.checked)}
+                    />
                     Auto-approve after generation
                 </label>
             </div>
 
             <div className="flex flex-wrap gap-3 mb-6">
-                <button onClick={handleGenerate} disabled={loading} className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 disabled:opacity-50">
+                <button
+                    onClick={handleGenerate}
+                    disabled={loading}
+                    className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 disabled:opacity-50"
+                >
                     {loading ? "Generating…" : "Generate Plan"}
                 </button>
 
-                <button onClick={handleRegenUnlocked} disabled={loading || posts.length === 0} className="bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700 disabled:opacity-50">
+                <button
+                    onClick={handleRegenUnlocked}
+                    disabled={loading || posts.length === 0}
+                    className="bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700 disabled:opacity-50"
+                >
                     {loading ? "Regenerating…" : "Regenerate Unlocked"}
                 </button>
 
                 {posts.length > 0 && (
                     <>
-                        <button onClick={approveAll} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        <button
+                            onClick={approveAll}
+                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        >
                             Approve All
                         </button>
-                        <button onClick={reset} className="bg-slate-200 text-slate-700 px-4 py-2 rounded hover:bg-slate-300">
+                        <button
+                            onClick={reset}
+                            className="bg-slate-200 text-slate-700 px-4 py-2 rounded hover:bg-slate-300"
+                        >
                             Reset
                         </button>
-                        <button onClick={handleSaveCloud} disabled={loading} className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 disabled:opacity-50">
+                        <button
+                            onClick={handleSaveCloud}
+                            disabled={loading}
+                            className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 disabled:opacity-50"
+                        >
                             {loading ? "Saving…" : "Save to Cloud"}
                         </button>
                     </>
                 )}
             </div>
 
-            {/* Avoid flicker on first load */}
             {hydrated && posts.length > 0 && (
                 <div className="grid grid-cols-3 gap-4 mb-6">
                     <KPI label="Drafts" value={draftCount} />
