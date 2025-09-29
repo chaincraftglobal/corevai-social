@@ -13,3 +13,23 @@ export function pickTime(platform: Platform, index: number): string {
     const slots = WINDOWS[platform] || ["10:00"];
     return slots[index % slots.length];
 }
+
+// lib/prisma.ts
+import { PrismaClient } from "@prisma/client";
+
+declare global {
+    // allow globalThis.prisma
+    // eslint-disable-next-line no-var
+    var prisma: PrismaClient | undefined;
+}
+
+export const prisma =
+    globalThis.prisma ??
+    new PrismaClient({
+        log:
+            process.env.NODE_ENV === "development"
+                ? ["query", "error", "warn"]
+                : ["error"],
+    });
+
+if (process.env.NODE_ENV !== "production") globalThis.prisma = prisma;

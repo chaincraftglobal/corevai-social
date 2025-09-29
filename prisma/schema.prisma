@@ -31,6 +31,11 @@ enum Plan {
   DIAMOND
 }
 
+model WebhookEvent {
+  id          String   @id
+  processedAt DateTime @default(now())
+}
+
 // ---------- NextAuth models ----------
 model User {
   id            String      @id @default(cuid())
@@ -51,6 +56,12 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+
+   stripeCustomerId     String?
+  stripeSubscriptionId String?
+  stripePriceId        String?   // current active price
+  // plan, credits, trialEndsAt already exist
 }
 
 model Account {
